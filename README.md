@@ -1,5 +1,3 @@
-Copia y pega en tu terminal
-
 Resumen del Script de Mantenimiento y Actualización de Kali Linux
 Este script realiza una serie de tareas de mantenimiento y actualización en Kali Linux para asegurar que el sistema esté optimizado y libre de problemas. A continuación se detalla la funcionalidad de cada sección del script:
 
