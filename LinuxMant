@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# Archivo de log
+LOG_FILE="/var/log/system_update_maintenance.log"
+
+# Fecha y hora actual
+DATE=$(date '+%Y-%m-%d %H:%M:%S')
+
+echo "====================================" | tee -a $LOG_FILE
+echo "Mantenimiento y limpieza del sistema iniciado: $DATE" | tee -a $LOG_FILE
+
+# Función para verificar si un comando fue exitoso
+check_status() {
+    if [ $? -eq 0 ]; then
+        echo "[OK] $1 completado." | tee -a $LOG_FILE
+    else
+        echo "[WARNING] Ocurrió un problema con $1, pero el script continuará." | tee -a $LOG_FILE
+    fi
+}
+
+# 1. Actualizar lista de paquetes y el sistema
+echo "Actualizando repositorios y paquetes..." | tee -a $LOG_FILE
+sudo apt update && sudo apt upgrade -y
+check_status "Actualización de repositorios y paquetes"
+
+# 2. Eliminar paquetes no utilizados
+echo "Eliminando paquetes y dependencias no utilizadas..." | tee -a $LOG_FILE
+sudo apt autoremove -y
+check_status "Eliminación de paquetes no utilizados"
+
+# 3. Limpiar caché de APT
+echo "Limpiando caché de APT..." | tee -a $LOG_FILE
+sudo apt clean
+# check_status no es necesario aquí
+
+# 4. Eliminar archivos temporales
+echo "Eliminando archivos temporales en /tmp..." | tee -a $LOG_FILE
+sudo find /tmp -type f -atime +7 -delete
+check_status "Eliminación de archivos temporales"
+
+# 5. Eliminar logs antiguos
+echo "Eliminando logs de sistema más viejos de 7 días..." | tee -a $LOG_FILE
+sudo journalctl --vacuum-time=7d
+check_status "Limpieza de logs antiguos"
+
+# 6. Reparar dependencias rotas
+echo "Reparando dependencias rotas..." | tee -a $LOG_FILE
+sudo apt --fix-broken install -y
+check_status "Reparación de dependencias"
+
+# 7. Verificar y reconfigurar paquetes
+echo "Verificando y reconfigurando paquetes..." | tee -a $LOG_FILE
+sudo dpkg --configure -a
+check_status "Reconfiguración de paquetes"
+
+# 8. Revisar espacio en disco
+echo "Revisando el espacio en disco..." | tee -a $LOG_FILE
+df -h | tee -a $LOG_FILE
+du -sh * 2>/dev/null | tee -a $LOG_FILE
+
+# 9. Reiniciar el sistema si es necesario
+if [ -f /var/run/reboot-required ]; then
+    echo "Se requiere reiniciar el sistema para completar las actualizaciones." | tee -a $LOG_FILE
+    echo "Reiniciando el sistema en 30 segundos..." | tee -a $LOG_FILE
+    sleep 30
+    sudo reboot
+else
+    echo "No se requiere reiniciar el sistema." | tee -a $LOG_FILE
+fi
+
+echo "Mantenimiento y limpieza del sistema completados exitosamente." | tee -a $LOG_FILE
