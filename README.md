@@ -1,6 +1,3 @@
-Aquí tienes una explicación detallada del código final de mantenimiento y limpieza para Linux, adecuada para ser incluida en GitHub:
-
----
 
 ## Script de Mantenimiento y Limpieza de Sistema en Linux
 
